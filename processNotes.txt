@@ -1,0 +1,86 @@
+Cookie Challenge processnotes
+
+
+Alright checking out the problem set. Looks like there’s a fixed statespace of a set of permutations being [[0, max], … [0, max]] in this case, so we can bruteforce it. Some things to note if want to add heuristics later:
+if ANY of the combinations are negative (or 0) totalscore is 0
+all cookies with only 1 ingredient will never "win", cause they times eachother
+sprinkles are the only capacity ingredient
+butterscotch is the only positive durability
+chocolate is the only positive flavour
+candy is the only positive texture
+chocolate must be > than sprinkles + butterscotch
+candy must be > than 5 * chocolate
+all sprinkles is bonus
+butterscotch must be > than 5 * candy
+
+
+Steps to make this work:
+1. Read in the data
+2. Find all permutations needed
+3. Calc score for each, keep track of max
+4. Return max 
+
+
+First of all: reading in the data. Want to make it generic but rather have something working first before making it beautiful. Created Ingredient class, generated getters and setters, initiating the data in main.php. Return as array in case we make it generic later.
+
+Secondly, create a class to generate recipes from. Will bruteforce for now, would love to build a hlllclimber later if I have some time to make it more generic. Define property teaspoonsAvailable on there will need it for sure. Create method called bruteforce for the first solution. In bruteforce(), generate all permutations and do nothing with those not summing to teaspoonsAvailable. For those that do, calculate the score. (Later added minusing the outer variable loops, to speed it up a bit). (Even later removed 4th loop, $l can always just be what’s left with the other 3 in mind, also saves the check for $I + $j + $k + $l == 100).
+
+Calculating the score now. Wrote a method to transform the data to a more readable format, and a different one which is more generic which calculates the actual scores. Perhaps at some point we can make `transformData` more generic in the future, but at least `calculateScore` is already generic. In `bruteforce`, start max as 0, and take the `max()` of the result of `calculateScore` and the current known max. 
+
+After all permutations have been checked, max should contain the highest number we found. Case closed: 21367368. 
+Okay sure, but what is the winning recipe? Added check to also save current winning recipe in bruteforce. Apparently the winner is: 
+--------- RESULTS ---------
+Winning score: 21367368
+Winning recipe:
+17 teaspoons of sprinkles
+19 teaspoons of butterscotch
+38 teaspoons of chocolate
+26 teaspoons of candy
+
+Just for funs sake added command line functionality of teaspoons in case we make it more generic in the future.
+
+Bonus problemset, adding the constraint of calories being 500 exactly. Greedy solution would be to insert one additional statement into the bruteforce method which checks that… so why not do that as a first solution. Adding a method to check a certain constraint to the RecipeCreator, with type and target now in the constructor and argv. Since we don’t actually want the calories included in the score, added option to remove the constraint variable you are checking. 
+
+500 calorie challenge result:
+--------- RESULTS ---------
+Winning score: 1766400 
+Winning recipe: 
+46 teaspoons of sprinkles
+14 teaspoons of butterscotch
+30 teaspoons of chocolate
+10 teaspoons of candy
+
+And fot 600 calories:
+--------- RESULTS ---------
+Winning score: 20428800 
+Winning recipe: 
+20 teaspoons of sprinkles
+20 teaspoons of butterscotch
+36 teaspoons of chocolate
+24 teaspoons of candy
+
+
+
+After this made a “shadow” hillclimber just for fun, ran it 10 times and got the following results:
+21349888
+21367368
+21297600
+20409480
+21349888
+20476764
+21367368
+21286720
+21367368
+21349888
+
+Interestingly enough bruteforced max of 21367368 was found 3 times out of 10… 
+
+
+
+
+
+Questions/discussionpoints 
+PHPDoc Blocks —> Always? If it adds something? In general, is there a Social Blue style guide?
+Ingredient.php —> Unused getters and setters, keep them for the future, or only what is needed? Or __get?
+“void” return type, specify or leave empty? (Also related to a potential style guide)
+$totalscore = “first” —> also had $type->$ingredientMatrix but then more hardcoded if $type == “capacity” so less generic… but this is ugly. Alternatively, add counter/flag variable, but then we have another variable added, but at least $totalScore is always of type int and not sometimes string sometimes int.
